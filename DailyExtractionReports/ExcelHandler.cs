@@ -10,6 +10,7 @@ public static class ExcelHandler
     private const string PendingWorksheetName = "Pending Samples";
     public const string BaseDirectory = "C:\\Daily Query Report Files\\";
 
+    #region Main Methods For Exporting Data
     public static void ExportDuplicatesToExcel(List<Duplicates> possibleDuplicates, string fileName)
     {
 
@@ -20,7 +21,24 @@ public static class ExcelHandler
 
         SaveContentToFile(worksheet, workbook, fileName);
     }
+    public static void ExportPendingSamplesToExcel(IEnumerable<PendingSamples> pendingSamples, string fileName)
+    {
+        var currentRow = CreateWorksheet(PendingWorksheetName, out var workbook, out var worksheet);
+        FormatWorksheet<PendingSamples>(worksheet, currentRow);
 
+        foreach (var pendingSample in pendingSamples)
+        {
+            currentRow++;
+            AddWorksheetValues(worksheet, currentRow, pendingSample);
+        }
+        
+        //save the worksheet
+        SaveContentToFile(worksheet, workbook, fileName);
+    }
+    
+    #endregion
+
+    #region Excel File Helper Methods
     public static void AddDuplicatesToWorksheet(IReadOnlyCollection<Duplicates> possibleDuplicates, int currentRow, IXLWorksheet? worksheet)
     {
         var listYesterdaysSpecimenIds = GetYesterdayDuplicateSpecimenIds().ToList();
@@ -38,12 +56,6 @@ public static class ExcelHandler
         }
     }
 
-    public static string GetDateToAppendToFileName()
-    {
-        return DateTime.Now.Month.ToString().Length == 1 ? "0" + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Year
-            : DateTime.Now.Month.ToString() + DateTime.Now.Day + DateTime.Now.Year;
-    }
-
     public static int CreateWorksheet(string worksheetName, out XLWorkbook workbook, out IXLWorksheet? worksheet)
     {
         const int currentRow = 1;
@@ -52,28 +64,6 @@ public static class ExcelHandler
 
         worksheet = workbook.Worksheets.Add(worksheetName);
         return currentRow;
-    }
-
-    private static bool IsNotTrueDuplicate(IReadOnlyCollection<Duplicates> possibleDuplicates, Duplicates possibleDuplicate)
-    {
-        return possibleDuplicates.Count(x => x.SpecId.Equals(possibleDuplicate.SpecId)) <= 1
-               || possibleDuplicates.Where(x => x.SpecId.Equals(possibleDuplicate.SpecId))
-                   .Select(x => x.ProcessingStatus).Distinct().Count() != 1;
-    }
-    
-    public static void ExportPendingSamplesToExcel(IEnumerable<PendingSamples> pendingSamples, string fileName)
-    {
-        var currentRow = CreateWorksheet(PendingWorksheetName, out var workbook, out var worksheet);
-        FormatWorksheet<PendingSamples>(worksheet, currentRow);
-
-        foreach (var pendingSample in pendingSamples)
-        {
-            currentRow++;
-            AddWorksheetValues(worksheet, currentRow, pendingSample);
-        }
-        
-        //save the worksheet
-        SaveContentToFile(worksheet, workbook, fileName);
     }
     
     private static void SaveContentToFile(IXLWorksheet? worksheet, IXLWorkbook workbook, string fileName)
@@ -108,22 +98,11 @@ public static class ExcelHandler
             worksheet.Cell(currentRow, i + 1).Style.Font.Bold = true;
         }
     }
-
-    public static IEnumerable<string> GetYesterdayDuplicateSpecimenIds()
-    {
-        var files = GetLastDaysDuplicateFileInfo();
-        var duplicateWorksheet = GetDuplicateWorksheet(files);
-
-        var duplicateSpecimenIds = new List<string>(GetDistinctSpecimenIdsFromWorksheet(duplicateWorksheet) ?? Array.Empty<string>());
-
-        return duplicateSpecimenIds;
-    }
-
     public static IEnumerable<string>? GetDistinctSpecimenIdsFromWorksheet(IXLWorksheet? duplicateWorksheet)
     {
         return duplicateWorksheet?.Range("A2:A100").CellsUsed().Select(c => c.Value.ToString()).Distinct().ToList();
     }
-
+    
     public static IXLWorksheet? GetDuplicateWorksheet(FileSystemInfo? files)
     {
         var workbook = new XLWorkbook(files?.FullName);
@@ -140,4 +119,29 @@ public static class ExcelHandler
 
         return fileInfo;
     }
+    
+    public static string GetDateToAppendToFileName()
+    {
+        return DateTime.Now.Month.ToString().Length == 1 ? "0" + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Year
+            : DateTime.Now.Month.ToString() + DateTime.Now.Day + DateTime.Now.Year;
+    }
+
+    private static bool IsNotTrueDuplicate(IReadOnlyCollection<Duplicates> possibleDuplicates, Duplicates possibleDuplicate)
+    {
+        return possibleDuplicates.Count(x => x.SpecId.Equals(possibleDuplicate.SpecId)) <= 1
+               || possibleDuplicates.Where(x => x.SpecId.Equals(possibleDuplicate.SpecId))
+                   .Select(x => x.ProcessingStatus).Distinct().Count() != 1;
+    }
+    
+    public static IEnumerable<string> GetYesterdayDuplicateSpecimenIds()
+    {
+        var files = GetLastDaysDuplicateFileInfo();
+        var duplicateWorksheet = GetDuplicateWorksheet(files);
+
+        var duplicateSpecimenIds = new List<string>(GetDistinctSpecimenIdsFromWorksheet(duplicateWorksheet) ?? Array.Empty<string>());
+
+        return duplicateSpecimenIds;
+    }
+    
+    #endregion
 }
