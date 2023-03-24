@@ -7,9 +7,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace DailyExtractionReports;
 
-public class DatabaseHandler
+public static class DatabaseHandler
 {
-	[SuppressMessage("ReSharper.DPA", "DPA0005: Database issues")]
 	public static IEnumerable<Duplicates> GetPossibleDuplicates()
 	{
 		var appSettings = new Startup();

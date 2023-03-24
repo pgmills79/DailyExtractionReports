@@ -163,6 +163,44 @@ public class ExcelHandlerTests
         duplicateWorksheet?.CellsUsed().Count().Should().BeGreaterThan(0);
     }
     
+    [Fact]
+    public void ExportDuplicatesToExcel_Should_Export_Records_To_Directory()
+    {
+        //Arrange
+        var possibleDuplicates = DatabaseHandler.GetPossibleDuplicates().ToList();
+        var fileDate = ExcelHandler.GetDateToAppendToFileName();
+        var fileName = $"{ExcelHandler.BaseDirectory}Daily_Duplicates_{fileDate}_TestingFile.xlsx";
+
+        //Act
+        ExcelHandler.ExportDuplicatesToExcel(possibleDuplicates, fileName);
+        
+        //Assert
+        File.Exists(fileName).Should().BeTrue();
+        
+        //cleanup
+        File.Delete(fileName);
+
+    }
+    
+    [Fact]
+    public void ExportPendingSamplesToExcel_Should_Export_Records_To_Directory()
+    {
+        //Arrange
+        var pendingSamplesList = DatabaseHandler.GetPendingSamples().ToList();
+        var fileDate = ExcelHandler.GetDateToAppendToFileName();
+        var fileName = $"{ExcelHandler.BaseDirectory}clinmicro_pending_list_{fileDate}.xlsx";
+
+        //Act
+        ExcelHandler.ExportPendingSamplesToExcel(pendingSamplesList, fileName);
+        
+        //Assert
+        File.Exists(fileName).Should().BeTrue();
+        
+        //cleanup
+        File.Delete(fileName);
+
+    }
+    
     /*[Theory]
     [InlineData(new[]{"1234567","1234567", ""}, 2)]
     public void AddDuplicatesToWorksheet_Should_Not_Contain_False_Duplicates_OrControls(string[] possibleDuplicates, int expectedNumberRows)

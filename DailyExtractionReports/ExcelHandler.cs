@@ -10,11 +10,8 @@ public static class ExcelHandler
     private const string PendingWorksheetName = "Pending Samples";
     public const string BaseDirectory = "C:\\Daily Query Report Files\\";
 
-    public static void ExportDuplicatesToExcel(List<Duplicates> possibleDuplicates)
+    public static void ExportDuplicatesToExcel(List<Duplicates> possibleDuplicates, string fileName)
     {
-        
-        var fileDate = GetDateToAppendToFileName();
-        var fileName = $"C:\\Daily Query Report Files\\Daily_Duplicates_{fileDate}.xlsx";
 
         var currentRow = CreateWorksheet(DuplicatesWorksheetName, out var workbook, out var worksheet);
         FormatWorksheet<Duplicates>(worksheet, currentRow);
@@ -62,13 +59,8 @@ public static class ExcelHandler
                    .Select(x => x.ProcessingStatus).Distinct().Count() != 1;
     }
     
-    public static void ExportPendingSamplesToExcel(IEnumerable<PendingSamples> pendingSamples)
+    public static void ExportPendingSamplesToExcel(IEnumerable<PendingSamples> pendingSamples, string fileName)
     {
-        var fileDate = DateTime.Now.Month.ToString().Length == 1 ? "0" + DateTime.Now.Month + DateTime.Now.Day + DateTime.Now.Year
-            : DateTime.Now.Month.ToString() + DateTime.Now.Day + DateTime.Now.Year;
-        
-        var fileName = $"{BaseDirectory}clinmicro_pending_list_{fileDate}.xlsx";
-
         var currentRow = CreateWorksheet(PendingWorksheetName, out var workbook, out var worksheet);
         FormatWorksheet<PendingSamples>(worksheet, currentRow);
 
