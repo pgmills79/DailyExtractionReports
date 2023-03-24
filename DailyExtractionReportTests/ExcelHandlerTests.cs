@@ -1,3 +1,4 @@
+using System.Collections;
 using DailyExtractionReports;
 using DailyExtractionReports.Models;
 using FluentAssertions;
@@ -6,6 +7,8 @@ namespace DailyExtractionReportTests;
 
 public class ExcelHandlerTests
 {
+    
+    private const string EmptyValue = "Empty Value";
     
     [Fact]
     public void GetDateToAppendToFileName_Should_Return_String_With_Today_Date()
@@ -50,8 +53,7 @@ public class ExcelHandlerTests
         //Arrange
         const int currentRow = 1;
         const string worksheetName = "Test Worksheet";
-        var duplicatesType = typeof(Duplicates);
-        var propertyCount = duplicatesType.Properties().Count();
+        var duplicatesType = GetDuplicateClassPropertyCount(out var propertyCount);
         ExcelHandler.CreateWorksheet(worksheetName, out _, out var worksheet);
         
         //Act
@@ -65,7 +67,14 @@ public class ExcelHandlerTests
         
 
     }
-    
+
+    private static Type GetDuplicateClassPropertyCount(out int propertyCount)
+    {
+        var duplicatesType = typeof(Duplicates);
+        propertyCount = duplicatesType.Properties().Count();
+        return duplicatesType;
+    }
+
     [Fact]
     public void FormatWorksheet_PendingSamples_Should_Format_With_Correct_Header_Columns()
     {
@@ -200,21 +209,60 @@ public class ExcelHandlerTests
         File.Delete(fileName);
 
     }
-    
-    /*[Theory]
-    [InlineData(new[]{"1234567","1234567", ""}, 2)]
-    public void AddDuplicatesToWorksheet_Should_Not_Contain_False_Duplicates_OrControls(string[] possibleDuplicates, int expectedNumberRows)
+
+    [Theory]
+    [ClassData(typeof(DuplicateTestData))]
+    public void AddWorksheetValues_Duplicates_Should_Add_Record_To_Worksheet(Duplicates duplicateRowToAdd)
     {
         //Arrange
-        const string worksheetName = "Test Worksheet";
-        var currentRow = ExcelHandler.CreateWorksheet(worksheetName, out _, out var worksheet);
-
+        var currentRow = ExcelHandler.CreateWorksheet(ExcelHandler.DuplicatesWorksheetName, out _,
+            out var worksheet);
+        GetDuplicateClassPropertyCount(out var propertyCount);
+        
         //Act
-        ExcelHandler.AddDuplicatesToWorksheet(new List<Duplicates>(), currentRow, worksheet);
-
+        ExcelHandler.AddWorksheetValues(worksheet, currentRow,duplicateRowToAdd);
+        
         //Assert
-        //duplicateWorksheet.Should().NotBeNull();
-        //here just asserting there is a header in the file
-        //duplicateWorksheet.CellsUsed().Count().Should().BeGreaterThan(0);
-    }*/
+        worksheet.Should().NotBeNull();
+        worksheet?.CellsUsed().Should().NotBeNullOrEmpty();
+        worksheet?.Cells().Should().HaveCount(propertyCount);
+        worksheet?.Row(1).Cell(1).GetString().Should().Be(duplicateRowToAdd.SpecId);
+        worksheet?.Row(1).Cell(2).GetString().Should().Be(duplicateRowToAdd.ProcessInstName);
+        worksheet?.Row(1).Cell(3).GetString().Should().Be(duplicateRowToAdd.ProcessDefName);
+        worksheet?.Row(1).Cell(4).GetString().Should().Be(duplicateRowToAdd.ResevSuppPosition);
+        worksheet?.Row(1).Cell(5).GetString().Should().Be(duplicateRowToAdd.ProcessingStatus);
+        worksheet?.Row(1).Cell(6).GetString().Should().Be(duplicateRowToAdd.TestCodes);
+        worksheet?.Row(1).Cell(7).GetString().Should().Be(duplicateRowToAdd.PendingRxns);
+        worksheet?.Row(1).Cell(8).GetString().Should().Be(duplicateRowToAdd.RepeatReason);
+
+    }
+    
+    public class DuplicateTestData:IEnumerable<object[]>
+    {
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            yield return new object[] { new Duplicates
+            {
+                SpecId = "10293545310", 
+                ProcessInstName = "230318_014139",
+                ProcessDefName = "MagNa Pure 96 Extraction (ClinMicro)",
+                ResevSuppPosition = "H2",
+                ProcessingStatus = "MP96ExtrSuccess", 
+                TestCodes = EmptyValue,
+                PendingRxns = EmptyValue,
+                RepeatReason = EmptyValue
+            } };
+            
+            /*yield return new object[] { new Duplicates { Id = 2, FirstName = "Mary", LastName = null } };
+            yield return new object[] { new Duplicates { Id = 3, FirstName = "Mary", LastName = null } };
+            yield return new object[] { new Duplicates { Id = 4, FirstName = "", LastName = null } };
+            yield return new object[] { new Duplicates { Id = 5, FirstName = "", LastName = "john" } };
+            yield return new object[] { new Duplicates { Id = 6, FirstName = null, LastName = " " } };*/
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }
