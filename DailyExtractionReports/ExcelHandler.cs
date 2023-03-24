@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using DailyExtractionReports.Models;
 
 namespace DailyExtractionReports;
