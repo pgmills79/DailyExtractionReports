@@ -236,8 +236,8 @@ public class ExcelHandlerTests
         worksheet?.Row(1).Cell(8).GetString().Should().Be(duplicateRowToAdd.RepeatReason);
 
     }
-    
-    public class DuplicateTestData:IEnumerable<object[]>
+
+    private class DuplicateTestData:IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {
