@@ -10,8 +10,7 @@ public static class DatabaseHandler
 {
 	public static IEnumerable<Duplicates> GetPossibleDuplicates()
 	{
-		var appSettings = new Startup();
-		var conString = appSettings.Config?.GetSection("ConnectionStrings").GetValue<string>("windows-auth-PROD");
+		var conString = GetConnectionString();
 
 		using var conLabOps = new SqlConnection(conString);
 		if (conLabOps.State == ConnectionState.Closed) conLabOps.Open();
@@ -168,8 +167,7 @@ public static class DatabaseHandler
 
 	public static IEnumerable<PendingSamples> GetPendingSamples()
 	{
-		var appSettings = new Startup();
-		var conString = appSettings.Config?.GetSection("ConnectionStrings").GetValue<string>("windows-auth-PROD");
+		var conString = GetConnectionString();
 
 		using var conLabOps = new SqlConnection(conString);
 		if (conLabOps.State == ConnectionState.Closed) conLabOps.Open();
@@ -267,4 +265,10 @@ public static class DatabaseHandler
 		    
 	}
 
+	public static string? GetConnectionString()
+	{
+		var appSettings = new Startup();
+		var conString = appSettings.Config?.GetSection("ConnectionStrings").GetValue<string>("windows-auth-PROD");
+		return conString;
+	}
 }

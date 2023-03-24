@@ -35,4 +35,21 @@ public class DatabaseHandlerTests
 
     }
     
+    [Fact]
+    public void GetConnectionString_Should_Return_ConnectionString()
+    {
+        //Arrange
+
+        //Act
+        var result = DatabaseHandler.GetConnectionString();
+        
+        //Assert
+        result.Should().NotBeNullOrEmpty();
+        result.Should().Contain("Data Source=");
+        result.Should().Contain("Initial Catalog=");
+        result.Should().Contain("Integrated Security=SSPI");
+        //result.Should().HaveCountGreaterThan(0);
+
+    }
+    
 }
