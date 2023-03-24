@@ -23,13 +23,15 @@ public static class ExcelHandler
 
     public static void AddDuplicatesToWorksheet(IReadOnlyCollection<Duplicates> possibleDuplicates, int currentRow, IXLWorksheet? worksheet)
     {
+        var listYesterdaysSpecimenIds = GetYesterdayDuplicateSpecimenIds().ToList();
+        
         foreach (var possibleDuplicate in possibleDuplicates.Where(x => long.TryParse(x.SpecId, out _)))
         {
             //only add if its a true duplicate (It has multiple rows with same specimen id AND the same status)
             if (IsNotTrueDuplicate(possibleDuplicates, possibleDuplicate)) continue;
 
-            //TODO: check if spec id has been listed in a previous extraction report (then we dont have to see if it has been emailed out)
-
+            //If trhe specimen ID has already been reported, continue to next Spec ID
+            if (listYesterdaysSpecimenIds.Any(x => x.Equals(possibleDuplicate.SpecId))) continue;
 
             currentRow++;
             AddWorksheetValues(worksheet, currentRow, possibleDuplicate);
